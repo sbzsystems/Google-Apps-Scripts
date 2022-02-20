@@ -1,0 +1,125 @@
+function change_labels() {
+
+
+
+
+  //LABELS
+  var completed_label = GmailApp.getUserLabelByName("completed");
+  var pending_label = GmailApp.getUserLabelByName("pending");
+  var accounting_label = GmailApp.getUserLabelByName("accounting");
+  
+
+
+
+
+
+  //ΟΤΑΝ ΕΧΕΙ ΑΠΑΝΤΗΘΕΙ ΤΟ EMAIL ΤΟΤΕ READ 
+  var main_thread = GmailApp.search('from:me AND !label:completed AND is:unread AND newer_than:1h');// newer_than:1h AND !in:scheduled AND !in:snoozed
+
+  for (var i = 0; i < main_thread.length; i++) {
+
+    var messages = main_thread[i].getMessages();
+    var cur_message = messages[messages.length - 1];
+    var from_email = cur_message.getFrom();
+    var to_email = cur_message.getTo();
+
+    if (from_email.indexOf('<') > -1) {
+      from_email = from_email.split("<")[1].split(">")[0];
+    }
+
+
+    //
+    if (!(
+
+      (to_email.indexOf('@sbzsystems.com') > -1) ||
+      (to_email.indexOf('@sbzsystems.co.uk') > -1) ||
+      (to_email.indexOf('@freeextra.com') > -1) ||
+      (to_email.indexOf('sbz.freeextra@gmail.com') > -1) ||
+      (to_email.indexOf('@sbz.gr') > -1) ||
+      (to_email.indexOf('@emporikoprogramma.gr') > -1)
+
+    )) {
+      Logger.log(from_email + '  ##  ' + to_email);//getSubject()            
+      main_thread[i].markRead().moveToInbox().refresh();
+    }
+
+  }
+
+
+
+
+
+
+
+  //ΟΛΑ ΤΑ ΠΡΟΓΡΑΜΜΑΤΙΣΜΕΝΑ pending ΚΑΙ archive
+  var main_thread = GmailApp.search('(in:scheduled OR in:snoozed) AND (is:inbox OR label:completed) AND newer_than:1h');
+  for (var i = 0; i < main_thread.length; i++) {
+
+    main_thread[i].removeLabel(completed_label).addLabel(pending_label).moveToArchive().refresh();
+  
+  }
+
+
+
+
+
+
+  //ΟΤΑΝ PENDING ΚΑΙ COMPLETED ΤΟΤΕ PENDING - ΛΕΙΤΟΥΡΓΕΙ ΣΕ ΟΛΟ ΤΟ THREAD
+  var main_thread = GmailApp.search('newer_than:1h AND label:pending AND !in:scheduled AND !in:snoozed');  
+
+
+  for (var i = 0; i < main_thread.length; i++) {
+
+    //Logger.log(main_thread[i].getFirstMessageSubject() + '##' + main_thread[i].getId() + '##' + main_thread[i].getMessageCount());
+    //   var labelstr = '';
+    var changenow = false;
+    var labels = main_thread[i].getLabels();
+
+    for (var li = 0; li < labels.length; li++) {
+      //Logger.log(labels[li].getName());
+      //labelstr = labelstr + labels[li].getName();
+      if (labels[li].getName() == "completed") {
+        changenow = true;
+        break;
+      }
+    }
+
+
+
+    if (changenow) {
+
+      main_thread[i].addLabel(pending_label).removeLabel(completed_label).moveToInbox().markUnread().refresh();
+      
+    }
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  //ΟΛΑ ΤΑ ΠΑΡΑΚΑΤΩ ARCHIVE
+  var main_thread = GmailApp.search('(is:inbox OR label:accounting) AND label:completed');
+  for (var i = 0; i < main_thread.length; i++) {
+
+    //Logger.log(main_thread[i].getFirstMessageSubject());
+    main_thread[i].removeLabel(accounting_label).moveToArchive().markRead().refresh();
+
+  }
+
+
+
+
+
+
+
+
+
+
+};
