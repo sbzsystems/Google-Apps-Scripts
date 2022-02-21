@@ -87,8 +87,9 @@ function change_labels() {
 
 
     if (changenow) {
+      
+      main_thread[i].addLabel(pending_label).removeLabel(completed_label).removeLabel(accounting_label).moveToInbox().markUnread().refresh();
 
-      main_thread[i].addLabel(pending_label).removeLabel(completed_label).moveToInbox().markUnread().refresh();
       
     }
 
